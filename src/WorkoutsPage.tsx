@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, Typography, Avatar, Chip, IconButton, Button } from '@mui/material';
+import { Box, Card, CardContent, Typography, Avatar, Chip, IconButton, Button, Menu, MenuItem } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
@@ -7,6 +7,10 @@ import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import AddIcon from '@mui/icons-material/Add';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ShareIcon from '@mui/icons-material/Share';
+import { useState } from 'react';
 
 // Sample workout data
 const workouts = [
@@ -85,6 +89,20 @@ const stats = [
 ];
 
 export default function WorkoutsPage() {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
+  
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>, workoutId: number) => {
+    setAnchorEl(event.currentTarget);
+    setSelectedWorkoutId(workoutId);
+  };
+  
+  const handleClose = () => {
+    setAnchorEl(null);
+    setSelectedWorkoutId(null);
+  };
+
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const today = new Date();
@@ -204,7 +222,16 @@ export default function WorkoutsPage() {
                           </Box>
                         </Box>
                       </Box>
-                      <IconButton size="small">
+                      
+                      <IconButton 
+                        size="small" 
+                        onClick={(e) => handleClick(e, workout.id)}
+                        sx={{
+                          '&:hover': {
+                            bgcolor: 'rgba(139, 92, 246, 0.1)',
+                          }
+                        }}
+                      >
                         <MoreVertIcon />
                       </IconButton>
                     </Box>
@@ -244,6 +271,65 @@ export default function WorkoutsPage() {
           </Grid>
         </CardContent>
       </Card>
+
+      {/* Menu Component */}
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleClose}
+        slotProps={{
+          paper: {
+            sx: {
+              bgcolor: 'background.paper',
+              borderRadius: 2,
+              border: '1px solid',
+              borderColor: 'divider',
+              minWidth: 180,
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+            }
+          }
+        }}
+      >
+        <MenuItem 
+          onClick={handleClose}
+          sx={{
+            gap: 1.5,
+            py: 1.5,
+            '&:hover': {
+              bgcolor: 'rgba(139, 92, 246, 0.1)',
+            }
+          }}
+        >
+          <EditIcon sx={{ fontSize: 20, color: 'primary.main' }} />
+          <Typography variant="body2">Edit Workout</Typography>
+        </MenuItem>
+        <MenuItem 
+          onClick={handleClose}
+          sx={{
+            gap: 1.5,
+            py: 1.5,
+            '&:hover': {
+              bgcolor: 'rgba(139, 92, 246, 0.1)',
+            }
+          }}
+        >
+          <ShareIcon sx={{ fontSize: 20, color: 'info.main' }} />
+          <Typography variant="body2">Share</Typography>
+        </MenuItem>
+        <MenuItem 
+          onClick={handleClose}
+          sx={{
+            gap: 1.5,
+            py: 1.5,
+            '&:hover': {
+              bgcolor: 'rgba(239, 68, 68, 0.1)',
+            }
+          }}
+        >
+          <DeleteIcon sx={{ fontSize: 20, color: 'error.main' }} />
+          <Typography variant="body2" color="error.main">Delete</Typography>
+        </MenuItem>
+      </Menu>
     </Box>
   );
 }
