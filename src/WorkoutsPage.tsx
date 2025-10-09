@@ -3,95 +3,144 @@ import Grid from '@mui/material/Grid';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import TimerIcon from '@mui/icons-material/Timer';
-import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import AddIcon from '@mui/icons-material/Add';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ShareIcon from '@mui/icons-material/Share';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { createWorkout, deleteWorkoutById, getAllWorkouts } from './API/WorkoutsAPI';
+import { IsLoggedInContext } from './App';
+import CreateWorkoutModal from './Components/CreateWorkoutModal';
 
-// Sample workout data
 const workouts = [
   {
     id: 1,
-    name: 'Upper Body Strength',
-    date: '2024-10-08',
+    title: 'Upper Body Strength',
+    createdAt: '2024-10-08',
     duration: 45,
-    calories: 320,
     exercises: 8,
-    type: 'Strength',
     color: '#8b5cf6',
     completed: true,
   },
   {
     id: 2,
-    name: 'HIIT Cardio Session',
-    date: '2024-10-07',
+    title: 'HIIT Cardio Session',
+    createdAt: '2024-10-07',
     duration: 30,
-    calories: 450,
     exercises: 6,
-    type: 'Cardio',
     color: '#ef4444',
     completed: true,
   },
   {
     id: 3,
-    name: 'Leg Day - Heavy',
-    date: '2024-10-06',
+    title: 'Leg Day - Heavy',
+    createdAt: '2024-10-06',
     duration: 60,
-    calories: 380,
     exercises: 10,
-    type: 'Strength',
     color: '#8b5cf6',
     completed: true,
   },
   {
     id: 4,
-    name: 'Yoga & Stretching',
-    date: '2024-10-05',
+    title: 'Yoga & Stretching',
+    createdAt: '2024-10-05',
     duration: 40,
-    calories: 150,
     exercises: 12,
-    type: 'Flexibility',
     color: '#10b981',
     completed: true,
   },
   {
     id: 5,
-    name: 'Full Body Circuit',
-    date: '2024-10-04',
+    title: 'Full Body Circuit',
+    createdAt: '2024-10-04',
     duration: 50,
-    calories: 420,
     exercises: 9,
-    type: 'Mixed',
     color: '#f59e0b',
     completed: true,
   },
   {
     id: 6,
-    name: 'Core & Abs Blast',
-    date: '2024-10-03',
+    title: 'Core & Abs Blast',
+    createdAt: '2024-10-03',
     duration: 25,
-    calories: 180,
     exercises: 7,
-    type: 'Core',
     color: '#06b6d4',
     completed: true,
   },
 ];
 
-const stats = [
-  { label: 'Total Workouts', value: '24', change: '+12%', icon: <FitnessCenterIcon /> },
-  { label: 'Avg Duration', value: '42 min', change: '+5%', icon: <TimerIcon /> },
-  { label: 'This Week', value: '6', change: '+2', icon: <TrendingUpIcon /> },
-];
+const getCurrentWeek = ()=>{
+  let curr = new Date();
+  let week = [];
+
+  for (let i = 1; i <= 7; i++) {
+    let first = curr.getDate() - curr.getDay() + i;
+    let day = new Date(curr.setDate(first)).toISOString().slice(0, 10);
+    week.push(day);
+  }
+  return week
+}
+
+const getWorkoutsThisWeek = (workouts: any[], currentWeek: string[]) => {
+  return workouts.filter((workout) => {
+    const workoutDate = new Date(workout.createdAt).toISOString().slice(0, 10); 
+    return currentWeek.includes(workoutDate); 
+  }).length; 
+};
 
 export default function WorkoutsPage() {
+  const userContext = useContext(IsLoggedInContext)
+  const { data: workoutsList, refetch } = useQuery({
+    queryKey: ['workoutData'],
+    queryFn: () => getAllWorkouts(userContext!.access_token),
+    enabled: !!userContext?.access_token,
+  });
+ 
+  const totalWorkouts = workoutsList?.length
+  let allDuration = 0
+  
+  workoutsList?.forEach((workout:any) => {
+    allDuration += workout.duration 
+  }) 
+  const currentWeek = getCurrentWeek();
+  const workoutsThisWeek = getWorkoutsThisWeek(workoutsList || workouts, currentWeek);
+
+  const averageDuration = allDuration / totalWorkouts
+
+  const stats = [
+    { label: 'Total Workouts', value: totalWorkouts || '24', icon: <FitnessCenterIcon /> },
+    { label: 'Avg Duration', value: averageDuration || '42 min', icon: <TimerIcon /> },
+    { label: 'This Week', value: workoutsThisWeek || '6', icon: <TrendingUpIcon /> },
+  ];
+
+  
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
-  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleCreateWorkout = async (formData: { title: string; duration: number }) => {
+    try {
+      await createWorkout(userContext!.access_token, formData)
+      setIsModalOpen(false)
+      refetch()
+    } catch (error) {
+      return error
+    }
+  };
+  const handleDeleteWorkout = async ()=>{
+    try {
+      await deleteWorkoutById(userContext?.access_token!, selectedWorkoutId!)
+      refetch()
+    }
+    catch (error) {
+      return error
+    }
+
+  }
+
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>, workoutId: number) => {
     setAnchorEl(event.currentTarget);
     setSelectedWorkoutId(workoutId);
@@ -101,7 +150,6 @@ export default function WorkoutsPage() {
     setAnchorEl(null);
     setSelectedWorkoutId(null);
   };
-
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -130,9 +178,10 @@ export default function WorkoutsPage() {
             Track and manage your fitness journey
           </Typography>
         </Box>
-        <Button
+          <Button
           variant="contained"
           startIcon={<AddIcon />}
+          onClick={() => setIsModalOpen(true)}
           sx={{
             bgcolor: 'primary.main',
             '&:hover': { bgcolor: 'primary.dark' },
@@ -143,6 +192,11 @@ export default function WorkoutsPage() {
         >
           New Workout
         </Button>
+        <CreateWorkoutModal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={handleCreateWorkout}
+        />
       </Box>
 
       {/* Stats Cards */}
@@ -159,17 +213,6 @@ export default function WorkoutsPage() {
                     <Typography variant="h4" fontWeight="bold">
                       {stat.value}
                     </Typography>
-                    <Chip
-                      label={stat.change}
-                      size="small"
-                      sx={{
-                        mt: 1,
-                        bgcolor: 'rgba(139, 92, 246, 0.1)',
-                        color: 'primary.main',
-                        fontWeight: 'bold',
-                        fontSize: '0.75rem',
-                      }}
-                    />
                   </Box>
                   <Avatar sx={{ bgcolor: 'rgba(139, 92, 246, 0.1)', color: 'primary.main' }}>
                     {stat.icon}
@@ -188,9 +231,10 @@ export default function WorkoutsPage() {
             Recent Workouts
           </Typography>
           <Grid container spacing={2}>
-            {workouts.map((workout) => (
+            {(workoutsList || workouts).map((workout:any) => (
               <Grid size={{ xs: 12, md: 6 }} key={workout.id}>
                 <Card
+                  onClick={()=>console.log(workout.id)}
                   sx={{
                     bgcolor: 'background.default',
                     borderRadius: 2,
@@ -212,12 +256,12 @@ export default function WorkoutsPage() {
                         </Avatar>
                         <Box>
                           <Typography variant="h6" fontWeight="bold">
-                            {workout.name}
+                            {workout.title}
                           </Typography>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                             <CalendarTodayIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
                             <Typography variant="body2" color="text.secondary">
-                              {formatDate(workout.date)}
+                              {formatDate(workout.createdAt)}
                             </Typography>
                           </Box>
                         </Box>
@@ -243,26 +287,13 @@ export default function WorkoutsPage() {
                         size="small"
                         sx={{ bgcolor: 'background.paper' }}
                       />
-                      <Chip
-                        icon={<LocalFireDepartmentIcon sx={{ fontSize: 16 }} />}
-                        label={`${workout.calories} cal`}
-                        size="small"
-                        sx={{ bgcolor: 'background.paper' }}
-                      />
+                      
                       <Chip
                         label={`${workout.exercises} exercises`}
                         size="small"
                         sx={{ bgcolor: 'background.paper' }}
                       />
-                      <Chip
-                        label={workout.type}
-                        size="small"
-                        sx={{
-                          bgcolor: `${workout.color}20`,
-                          color: workout.color,
-                          fontWeight: 'bold',
-                        }}
-                      />
+                      
                     </Box>
                   </CardContent>
                 </Card>
@@ -327,7 +358,7 @@ export default function WorkoutsPage() {
           }}
         >
           <DeleteIcon sx={{ fontSize: 20, color: 'error.main' }} />
-          <Typography variant="body2" color="error.main">Delete</Typography>
+          <Typography variant="body2" color="error.main" onClick={handleDeleteWorkout}>Delete</Typography>
         </MenuItem>
       </Menu>
     </Box>
