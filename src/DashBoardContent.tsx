@@ -37,7 +37,7 @@ export default function DashboardContent() {
     <Box sx={{ p: 3 }}>
       <Grid container spacing={3}>
         {/* Overview Section */}
-        <Grid size={{ xs: 12, md: 3 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Card sx={{ bgcolor: 'background.paper', borderRadius: 3, height: '100%' }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>Overview</Typography>
@@ -66,7 +66,7 @@ export default function DashboardContent() {
         </Grid>
 
         {/* Today's Activity */}
-        <Grid size={{ xs: 12, md: 3 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Card sx={{ bgcolor: 'primary.main', borderRadius: 3, height: '100%' }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>Today's activity</Typography>
@@ -80,57 +80,6 @@ export default function DashboardContent() {
               </Box>
             </CardContent>
           </Card>
-        </Grid>
-
-        {/* Output */}
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Card sx={{ bgcolor: 'background.paper', borderRadius: 3, height: '100%' }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>Output</Typography>
-              <Box sx={{ mb: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                  <Avatar sx={{ bgcolor: 'warning.main', width: 32, height: 32 }}>🔥</Avatar>
-                  <Typography variant="body2" color="text.secondary">Calories burn</Typography>
-                </Box>
-                <Typography variant="h5" fontWeight="bold">-1.2344 m</Typography>
-              </Box>
-              <Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                  <Avatar sx={{ bgcolor: 'success.main', width: 32, height: 32 }}>⚖️</Avatar>
-                  <Typography variant="body2" color="text.secondary">Weight loss</Typography>
-                </Box>
-                <Typography variant="h5" fontWeight="bold">-12.345 kg</Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Weight */}
-        <Grid size={{ xs: 12, md: 3 }}>
-            <Card sx={{ bgcolor: 'background.paper', borderRadius: 3, height: '100%' }}>
-                <CardContent>
-                <Typography variant="h6" gutterBottom>Weight</Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', 
-                    height: 200, gap: 2
-                }}>
-                    <Box>
-                        <Typography variant="body2" color="text.secondary">Starting weight</Typography>
-                        <Typography variant="h6" fontWeight="bold">85 kg</Typography>
-                    </Box>
-                    <Box>
-                        <Typography variant="body2" color="text.secondary">Current Weight</Typography>
-                        <Typography variant="h6" fontWeight="bold">72.5 kg</Typography>
-                    </Box>
-                    <Box>
-                        <Typography variant="body2" color="text.secondary">Progress</Typography>
-                        <Typography variant="h6" fontWeight="bold" color="success.main">-12.5 kg</Typography>
-                    </Box>
-                </Box>
-                <Box sx={{ mt: 2 }}>
-                    <Typography variant="body2" color="text.secondary">Based on workout</Typography>
-                </Box>
-                </CardContent>
-            </Card>
         </Grid>
 
         {/* Past Activity */}

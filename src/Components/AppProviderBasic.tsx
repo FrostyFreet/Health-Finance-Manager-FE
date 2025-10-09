@@ -14,6 +14,11 @@ import { useMemo } from 'react';
 import WorkoutsPage from '../WorkoutsPage';
 import ReportsPage from '../ReportsPage';
 import ActivityPage from '../ActivityPage';
+import AccountMenu from './AccountMenu';
+import AuthForm from './AuthForm';
+import ResetPassword from './ResetPassword';
+import SendResetPasswordEmail from './SendResetPasswordEmail';
+import ProfilePage from './ProfilePage';
 
 const NAVIGATION: Navigation = [
   {
@@ -94,10 +99,21 @@ export default function AppProviderBasic() {
         return <WorkoutsPage/>;
       case '/reports':
         return <ReportsPage/>;
-      default:
-        return <DashboardContent />;
+      case '/':
+         return <DashboardContent />;
+      case '/login':
+         return <AuthForm />;
+      case '/reset-password':
+         return <ResetPassword />;
+      case '/profile':
+         return <ProfilePage />;
+      case '/change-password':
+         return <ResetPassword />;
+      case '/send-reset-password':
+         return <SendResetPasswordEmail />;
     }
   };
+
   
   return (
       <AppProvider
@@ -109,7 +125,9 @@ export default function AppProviderBasic() {
             logo: <FitnessCenterOutlinedIcon />,
         }}
       >
-        <DashboardLayout>
+        <DashboardLayout slots={{
+            toolbarAccount: AccountMenu,
+          }}>
            {renderContent()}
 
         </DashboardLayout>
