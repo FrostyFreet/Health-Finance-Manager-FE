@@ -28,16 +28,8 @@ export default function WorkoutDetailPage(){
       })
     if (error) return <Box>{error.message}</Box>
 
-    let maxWeight: number = 0
-    workoutDetail?.exercises?.forEach((ex:any)=> {
-        maxWeight = Math.max(...ex.sets.map((set:any) => set.weight));
-    })
-  
-    
-    
     const deleteExercise = async (exerciseId: string)=>{
         try{
-
             await deleteExerciseFromWorkoutById(userContext?.access_token!, exerciseId, workoutId)
             refetch()
         }
@@ -88,12 +80,6 @@ export default function WorkoutDetailPage(){
                   </Typography>
                 </Stack>
               </Grid>
-
-              <Grid>
-                <Stack direction="column" spacing={1} alignItems="flex-end">
-                  <Chip icon={<WhatshotIcon />} label={maxWeight ? `Best: ${maxWeight}kg` : 'Best: —'} sx={{ bgcolor: 'background.default' }} />
-                </Stack>
-              </Grid>
             </Grid>
           </CardContent>
 
@@ -137,7 +123,11 @@ export default function WorkoutDetailPage(){
                     secondaryAction={
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Typography variant="body2" color="text.secondary" sx={{ minWidth: 80, textAlign: 'right' }}>
-                          Highest: {maxWeight > 0 ? maxWeight : '-'}
+                           Highest: {
+                              exercise.sets && exercise.sets.length > 0
+                                ? Math.max(...exercise.sets.map((set: any) => set.weight))
+                                : '—'
+                            }
                         </Typography>
                         <IconButton
                           size="small"

@@ -31,3 +31,37 @@ export async function createSet(token:string, form:any){
     throw e;
   }
 }
+
+export async function updateSet(token:string, id:string, weight:string, reps:string){
+    try{
+        const response = await axios.put(`${backendURL}/api/sets/updateSetById`,{
+          weight:weight,
+          reps:reps
+        },
+            { 
+              params: {id},
+              headers: { Authorization: `Bearer ${token}` }, });
+        return response.data;
+  }
+  catch (e: unknown) {
+    if (axios.isAxiosError(e)) {
+      throw new Error(e.response?.data?.message || e.message);
+    }
+    throw e;
+  }
+}
+
+export async function deleteSetExerciseById(token:string, id:string){
+    try{
+        const response = await axios.delete(`${backendURL}/api/sets/deleteSetExerciseById`,
+            { params:{ id },
+              headers: { Authorization: `Bearer ${token}` }, });
+        return response.data;
+  }
+  catch (e: unknown) {
+    if (axios.isAxiosError(e)) {
+      throw new Error(e.response?.data?.message || e.message);
+    }
+    throw e;
+  }
+}

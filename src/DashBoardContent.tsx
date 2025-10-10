@@ -1,6 +1,11 @@
 import { Box, Card, CardContent, Typography, Avatar, List, ListItem, ListItemAvatar, ListItemText } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { getWorkoutsInOrder, getLatestWorkout, getWorkoutById } from './API/WorkoutsAPI';
+import { useContext } from 'react';
+import { useNavigate } from 'react-router';
+import { IsLoggedInContext } from './App';
+import { useQuery } from '@tanstack/react-query';
 
 const activityData = [
   { month: 'Jan', value: 65 },
@@ -17,7 +22,6 @@ const activityData = [
   { month: 'Dec', value: 90 },
 ];
 
-// Custom tooltip for the chart
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     return (
@@ -33,6 +37,20 @@ const CustomTooltip = ({ active, payload }: any) => {
 };
 
 export default function DashboardContent() {
+  const navigate = useNavigate()
+  const userContext = useContext(IsLoggedInContext)
+
+  const { data: lastWorkouts } = useQuery({
+    queryKey: ['lastWorkouts'],
+    queryFn: () => getWorkoutsInOrder(userContext!.access_token),
+    enabled: !!userContext?.access_token,
+  });
+
+  console.log(lastWorkouts);
+  
+  
+  
+
   return (
     <Box sx={{ p: 3 }}>
       <Grid container spacing={3}>
@@ -64,70 +82,83 @@ export default function DashboardContent() {
             </CardContent>
           </Card>
         </Grid>
-
-        {/* Today's Activity */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Card sx={{ bgcolor: 'primary.main', borderRadius: 3, height: '100%' }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>Today's activity</Typography>
-              <Typography variant="h3" fontWeight="bold">30</Typography>
-              <Typography variant="body2" sx={{ opacity: 0.8 }}>Minutes</Typography>
-              <Box sx={{ mt: 3 }}>
-                <Typography variant="h5" sx={{ mb: 1 }} fontWeight="bold">Push Workout</Typography>
-                <Typography variant="body2" sx={{ mb: 1, ml:1 }}>🏋️ Squats - 10 reps</Typography>
-                <Typography variant="body2" sx={{ mb: 1, ml:1 }}>🦵 Low lungs - 8 reps</Typography>
-                <Typography variant="body2" sx= {{ ml:1 }} >🪢 Batting rope - 20 reps</Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Past Activity */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Card sx={{ bgcolor: 'background.paper', borderRadius: 3 }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6">Your Latest Activities</Typography>
-                <Typography variant="body2" color="primary.main" sx={{ cursor: 'pointer' }}>View all</Typography>
-              </Box>
-              <List sx={{ p: 0 }}>
-                <ListItem sx={{ px: 0, py: 1.5, borderRadius: 2, '&:hover': { bgcolor: 'rgba(139, 92, 246, 0.05)' } }}>
-                  <ListItemAvatar>
-                    <Avatar sx={{ bgcolor: 'primary.main' }}>U</Avatar>
-                  </ListItemAvatar>
-                  <ListItemText 
-                    primary={<Typography fontWeight="bold">Ultimate body workout</Typography>}
-                    secondary="17 Feb, 2022 at 3:30 PM" 
-                  />
-                  <Typography fontWeight="bold" color="primary.main">$12,700/m</Typography>
-                </ListItem>
-                <ListItem sx={{ px: 0, py: 1.5, borderRadius: 2, '&:hover': { bgcolor: 'rgba(255, 152, 0, 0.05)' } }}>
-                  <ListItemAvatar>
-                    <Avatar sx={{ bgcolor: 'warning.main' }}>B</Avatar>
-                  </ListItemAvatar>
-                  <ListItemText 
-                    primary={<Typography fontWeight="bold">Beginner to advance gym</Typography>}
-                    secondary="18 Feb, 2022 at 3:30 PM" 
-                  />
-                  <Typography fontWeight="bold" color="warning.main">$12,700/m</Typography>
-                </ListItem>
-                <ListItem sx={{ px: 0, py: 1.5, borderRadius: 2, '&:hover': { bgcolor: 'rgba(76, 175, 80, 0.05)' } }}>
-                  <ListItemAvatar>
-                    <Avatar sx={{ bgcolor: 'success.main' }}>F</Avatar>
-                  </ListItemAvatar>
-                  <ListItemText 
-                    primary={<Typography fontWeight="bold">Fitness for beginners</Typography>}
-                    secondary="19 Feb, 2022 at 3:30 PM" 
-                  />
-                  <Typography fontWeight="bold" color="success.main">$12,700/m</Typography>
-                </ListItem>
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
+        
+         {/* Past Activity */}
+        {
+          lastWorkouts ? (
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card sx={{ bgcolor: 'background.paper', borderRadius: 3 }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6">Your Latest Activities</Typography>
+                    <Typography variant="body2" color="primary.main" sx={{ cursor: 'pointer' }} onClick={()=>navigate("/workouts")}>View all</Typography>
+                  </Box>
+                  <List sx={{ p: 0 }}>
+                    {lastWorkouts.slice(0,3).map((w: any) => (
+                      <ListItem sx={{ px: 0, py: 1.5, borderRadius: 2, '&:hover': { bgcolor: 'rgba(139, 92, 246, 0.05)' } }}>
+                        <ListItemAvatar>
+                          <Avatar sx={{ bgcolor: 'primary.main' }}>U</Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={<Typography fontWeight="bold">{w.title}</Typography>}
+                          secondary={"Date:" + new Date(w.createdAt).toISOString().slice(0,10)}
+                        />
+                        <Typography fontWeight="bold" color="primary.main">{w.duration} Minutes</Typography>
+                      </ListItem>
+                    ))}
+                  </List>
+                </CardContent>
+              </Card>
+            </Grid>
+          ) : (
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card sx={{ bgcolor: 'background.paper', borderRadius: 3 }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6">Your Latest Activities</Typography>
+                    <Typography variant="body2" color="primary.main" sx={{ cursor: 'pointer' }}>View all</Typography>
+                  </Box>
+                  <List sx={{ p: 0 }}>
+                    <ListItem sx={{ px: 0, py: 1.5, borderRadius: 2, '&:hover': { bgcolor: 'rgba(139, 92, 246, 0.05)' } }}>
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: 'primary.main' }}>U</Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={<Typography fontWeight="bold">Ultimate body workout</Typography>}
+                        secondary="17 Feb, 2022 at 3:30 PM"
+                      />
+                      <Typography fontWeight="bold" color="primary.main">$12,700/m</Typography>
+                    </ListItem>
+                    <ListItem sx={{ px: 0, py: 1.5, borderRadius: 2, '&:hover': { bgcolor: 'rgba(255, 152, 0, 0.05)' } }}>
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: 'warning.main' }}>B</Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={<Typography fontWeight="bold">Beginner to advance gym</Typography>}
+                        secondary="18 Feb, 2022 at 3:30 PM"
+                      />
+                      <Typography fontWeight="bold" color="warning.main">$12,700/m</Typography>
+                    </ListItem>
+                    <ListItem sx={{ px: 0, py: 1.5, borderRadius: 2, '&:hover': { bgcolor: 'rgba(76, 175, 80, 0.05)' } }}>
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: 'success.main' }}>F</Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={<Typography fontWeight="bold">Fitness for beginners</Typography>}
+                        secondary="19 Feb, 2022 at 3:30 PM"
+                      />
+                      <Typography fontWeight="bold" color="success.main">$12,700/m</Typography>
+                    </ListItem>
+                  </List>
+                </CardContent>
+              </Card>
+            </Grid>
+          )
+        }
+       
 
         {/* Activity Chart */}
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12, md: 12 }}>
           <Card sx={{ bgcolor: 'background.paper', borderRadius: 3 }}>
             <CardContent>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>

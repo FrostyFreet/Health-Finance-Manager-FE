@@ -20,6 +20,42 @@ export async function getAllWorkouts(token:string){
     }
 }
 
+export async function getWorkoutsInOrder(token:string){
+    try{
+        const response = await axios.get(`${backendURL}/api/workouts/getWorkoutsInOrder`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+        });
+
+        return response.data
+    }
+    catch (e: unknown) {
+        if (axios.isAxiosError(e)) {
+        throw new Error(e.response?.data?.message || e.message);
+        }
+        throw e;
+    }
+}
+
+export async function getLatestWorkout(token:string){
+    try{
+        const response = await axios.get(`${backendURL}/api/workouts/getLatestWorkout`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+        });
+
+        return response.data
+    }
+    catch (e: unknown) {
+        if (axios.isAxiosError(e)) {
+        throw new Error(e.response?.data?.message || e.message);
+        }
+        throw e;
+    }
+}
+
 export async function getWorkoutById(token:string, id:number){
     try{
         const response = await axios.get(`${backendURL}/api/workouts/getById/${id}`, {
