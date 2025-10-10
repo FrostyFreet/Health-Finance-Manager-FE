@@ -1,7 +1,7 @@
 import { Box, Card, CardContent, Typography, Avatar, List, ListItem, ListItemAvatar, ListItemText } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { getWorkoutsInOrder, getLatestWorkout, getWorkoutById } from './API/WorkoutsAPI';
+import { getWorkoutsInOrder } from './API/WorkoutsAPI';
 import { useContext } from 'react';
 import { useNavigate } from 'react-router';
 import { IsLoggedInContext } from './App';

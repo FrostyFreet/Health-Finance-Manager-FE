@@ -1,4 +1,4 @@
-import { Box, IconButton, Typography, Card, CardContent, Divider, Stack, Paper, TextField, Button } from "@mui/material";
+import { Box, IconButton, Typography, Card, CardContent, Divider, Stack, Paper, TextField, Button, Alert } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router";
@@ -38,10 +38,6 @@ export default function ManageSetsPage() {
     }
   }, [exerciseDetail]);
   
- 
-  
-
-
   if (error) return <Box>{error.message}</Box>;
 
   const handleSetChange = (idx: number, field: 'weight' | 'reps', value: string) => {
@@ -106,6 +102,14 @@ export default function ManageSetsPage() {
 
   return (
     <Box sx={{ p: 3, maxWidth: 600, mx: 'auto' }}>
+      {status && (
+        <Alert
+          severity={status.includes('Please') ? 'warning' : 'success'}
+          sx={{ mb: 2, borderRadius: 2 }}
+        >
+          {status}
+        </Alert>
+      )}
       {/* Header */}
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
         <IconButton onClick={() => navigate(-1)} sx={{ mr: 2 }}>
