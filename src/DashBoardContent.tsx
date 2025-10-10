@@ -46,11 +46,6 @@ export default function DashboardContent() {
     enabled: !!userContext?.access_token,
   });
 
-  console.log(lastWorkouts);
-  
-  
-  
-
   return (
     <Box sx={{ p: 3 }}>
       <Grid container spacing={3}>
@@ -95,7 +90,7 @@ export default function DashboardContent() {
                   </Box>
                   <List sx={{ p: 0 }}>
                     {lastWorkouts.slice(0,3).map((w: any) => (
-                      <ListItem sx={{ px: 0, py: 1.5, borderRadius: 2, '&:hover': { bgcolor: 'rgba(139, 92, 246, 0.05)' } }}>
+                      <ListItem  key={w.id} sx={{ px: 0, py: 1.5, borderRadius: 2, '&:hover': { bgcolor: 'rgba(139, 92, 246, 0.05)' } }}>
                         <ListItemAvatar>
                           <Avatar sx={{ bgcolor: 'primary.main' }}>U</Avatar>
                         </ListItemAvatar>

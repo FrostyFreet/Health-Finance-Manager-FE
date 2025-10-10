@@ -1,26 +1,29 @@
 import { useQuery } from "@tanstack/react-query"
 import { useLocation, useNavigate } from "react-router"
-import { getWorkoutById } from "../API/WorkoutsAPI";
-import { useContext, useState } from "react";
+import { getWorkoutById, updateWorkoutName } from "../API/WorkoutsAPI";
+import { useContext, useEffect, useState } from "react";
 import { IsLoggedInContext } from "../App";
-import { Avatar, Box, Button, Card, CardContent, Chip, Divider, IconButton, List, ListItem, ListItemText, Stack, Typography } from "@mui/material";
+import { Avatar, Box, Button, Card, CardContent, Chip, Divider, IconButton, List, ListItem, ListItemText, Stack, TextField, Typography } from "@mui/material";
 import Grid from '@mui/material/Grid';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import TimerIcon from '@mui/icons-material/Timer';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
-import WhatshotIcon from '@mui/icons-material/Whatshot';
 import AddExerciseModal from "./AddExerciseModal";
 import DeleteIcon from '@mui/icons-material/Delete';
 import { deleteExerciseFromWorkoutById } from "../API/ExercisesAPI";
+import SaveIcon from '@mui/icons-material/Save';
+
 
 export default function WorkoutDetailPage(){
     const location = useLocation()
     const navigate = useNavigate() 
     const userContext = useContext(IsLoggedInContext)
     const [isModalOpen,setIsModalOpen] = useState<boolean>(false)
+    const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
     const { id,title} = location.state
     const workoutId = id
+    const [updateName,setUpdateName]=useState<string>()
     const {data:workoutDetail, error, refetch} = useQuery({
         queryKey: ['workoutDetail',workoutId],
         queryFn: () => getWorkoutById(userContext!.access_token, workoutId),
@@ -28,10 +31,28 @@ export default function WorkoutDetailPage(){
       })
     if (error) return <Box>{error.message}</Box>
 
+    useEffect(()=>{
+      if(workoutDetail){
+        setUpdateName(workoutDetail.title)
+      }
+    },[workoutDetail])
+
     const deleteExercise = async (exerciseId: string)=>{
         try{
             await deleteExerciseFromWorkoutById(userContext?.access_token!, exerciseId, workoutId)
             refetch()
+        }
+        catch(e){
+          console.error(e)
+        }
+    }
+
+    const updateWorkoutsName = async (id: string)=>{
+        try{
+            if(updateName && updateName !== workoutDetail.title){
+              await updateWorkoutName(userContext?.access_token!, id, updateName )
+              refetch()
+            }
         }
         catch(e){
           console.error(e)
@@ -67,9 +88,56 @@ export default function WorkoutDetailPage(){
               </Grid>
 
               <Grid>
-                <Typography variant="h6" fontWeight="bold">
-                  {title || 'Workout Title'}
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {!isEditingTitle ? (
+                    <>
+                      <Typography
+                        variant="h4"
+                        fontWeight="bold"
+                        sx={{
+                          minWidth: 200,
+                          mr: 1,
+                          borderBottom: '2px solid transparent',
+                          transition: 'border-color 0.2s',
+                          '&:hover': { borderColor: 'primary.main', cursor: 'pointer' }
+                        }}
+                        onClick={() => setIsEditingTitle(true)}
+                        component="div"
+                      >
+                        {updateName || title || 'Workout Title'}
+                      </Typography>
+                      <IconButton color="primary" onClick={() => setIsEditingTitle(true)}>
+                        <EditIcon />
+                      </IconButton>
+                    </>
+                  ) : (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <TextField
+                        name="title"
+                        value={updateName}
+                        onChange={e => setUpdateName(e.target.value)}
+                        size="small"
+                        variant="standard"
+                        sx={{
+                          fontSize: 28,
+                          fontWeight: 'bold',
+                          input: { fontSize: 28, fontWeight: 'bold', px: 1 }
+                        }}
+                        autoFocus
+                      />
+                      <IconButton
+                        color="primary"
+                        onClick={() => {
+                          updateWorkoutsName(workoutId);
+                          setIsEditingTitle(false);
+                        }}
+                        sx={{ ml: 1 }}
+                      >
+                        <SaveIcon />
+                      </IconButton>
+                    </Box>
+                  )}
+                </Box>
                 <Stack direction="row" spacing={2} sx={{ mt: 1, alignItems: 'center' }}>
                   <Typography variant="body2" color="text.secondary">
                     Date: {workoutDetail?.createdAt ? new Date(workoutDetail?.createdAt).toISOString().slice(0,10) : '—'}
