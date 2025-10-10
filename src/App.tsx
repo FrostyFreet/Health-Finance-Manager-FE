@@ -13,6 +13,8 @@ import ResetPassword from "./Components/ResetPassword";
 import SendResetPasswordEmail from "./Components/SendResetPasswordEmail";
 import ProfilePage from "./Components/ProfilePage";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import WorkoutDetailPage from "./Components/WorkoutDetailPage";
+import ManageSetsPage from "./Components/ManagaSetsPage";
 
 
 export const IsLoggedInContext = createContext<Session | null>(null);
@@ -36,7 +38,6 @@ export default function App() {
      <QueryClientProvider client={queryClient}>
         <IsLoggedInContext.Provider value={session}>
           <Routes>
-        
             <Route path="/" element={<AppProviderBasic/>}>
               
               <Route index element={<Navigate to="/overview" replace />} />
@@ -49,6 +50,8 @@ export default function App() {
               <Route path="/change-password" element={<ResetPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/send-reset-password" element={<SendResetPasswordEmail />} />
+              <Route path="/workout/:title" element={<WorkoutDetailPage />} />
+              <Route path="/workout/:title/:name/sets" element={<ManageSetsPage />} />
             
             </Route>
         </Routes>

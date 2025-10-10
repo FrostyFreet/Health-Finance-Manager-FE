@@ -14,6 +14,7 @@ import { useQuery } from '@tanstack/react-query';
 import { createWorkout, deleteWorkoutById, getAllWorkouts } from './API/WorkoutsAPI';
 import { IsLoggedInContext } from './App';
 import CreateWorkoutModal from './Components/CreateWorkoutModal';
+import { useNavigate } from 'react-router';
 
 const workouts = [
   {
@@ -21,7 +22,7 @@ const workouts = [
     title: 'Upper Body Strength',
     createdAt: '2024-10-08',
     duration: 45,
-    exercises: 8,
+    numberOfExercises: 8,
     color: '#8b5cf6',
     completed: true,
   },
@@ -30,7 +31,7 @@ const workouts = [
     title: 'HIIT Cardio Session',
     createdAt: '2024-10-07',
     duration: 30,
-    exercises: 6,
+    numberOfExercises: 6,
     color: '#ef4444',
     completed: true,
   },
@@ -39,7 +40,7 @@ const workouts = [
     title: 'Leg Day - Heavy',
     createdAt: '2024-10-06',
     duration: 60,
-    exercises: 10,
+    numberOfExercises: 10,
     color: '#8b5cf6',
     completed: true,
   },
@@ -48,7 +49,7 @@ const workouts = [
     title: 'Yoga & Stretching',
     createdAt: '2024-10-05',
     duration: 40,
-    exercises: 12,
+    numberOfExercises: 12,
     color: '#10b981',
     completed: true,
   },
@@ -57,7 +58,7 @@ const workouts = [
     title: 'Full Body Circuit',
     createdAt: '2024-10-04',
     duration: 50,
-    exercises: 9,
+    numberOfExercises: 9,
     color: '#f59e0b',
     completed: true,
   },
@@ -66,7 +67,7 @@ const workouts = [
     title: 'Core & Abs Blast',
     createdAt: '2024-10-03',
     duration: 25,
-    exercises: 7,
+    numberOfExercises: 7,
     color: '#06b6d4',
     completed: true,
   },
@@ -92,12 +93,14 @@ const getWorkoutsThisWeek = (workouts: any[], currentWeek: string[]) => {
 };
 
 export default function WorkoutsPage() {
+  const navigate = useNavigate()
   const userContext = useContext(IsLoggedInContext)
   const { data: workoutsList, refetch } = useQuery({
     queryKey: ['workoutData'],
     queryFn: () => getAllWorkouts(userContext!.access_token),
     enabled: !!userContext?.access_token,
   });
+  
  
   const totalWorkouts = workoutsList?.length
   let allDuration = 0
@@ -119,6 +122,7 @@ export default function WorkoutsPage() {
   
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
+  const [selectedWorkoutTitle, setSelectedWorkoutTitle] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleCreateWorkout = async (formData: { title: string; duration: number }) => {
@@ -141,9 +145,10 @@ export default function WorkoutsPage() {
 
   }
 
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>, workoutId: number) => {
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>, workoutId: number,workoutTitle:string) => {
     setAnchorEl(event.currentTarget);
     setSelectedWorkoutId(workoutId);
+    setSelectedWorkoutTitle(workoutTitle)
   };
   
   const handleClose = () => {
@@ -234,7 +239,7 @@ export default function WorkoutsPage() {
             {(workoutsList || workouts).map((workout:any) => (
               <Grid size={{ xs: 12, md: 6 }} key={workout.id}>
                 <Card
-                  onClick={()=>console.log(workout.id)}
+                 onClick={()=>{navigate(`/workout/${workout.title}`, {state: {title: workout.title, id: workout.id}}), setSelectedWorkoutTitle(workout.title)}}
                   sx={{
                     bgcolor: 'background.default',
                     borderRadius: 2,
@@ -269,7 +274,9 @@ export default function WorkoutsPage() {
                       
                       <IconButton 
                         size="small" 
-                        onClick={(e) => handleClick(e, workout.id)}
+                        onClick={(e) =>{
+                          e.stopPropagation(), 
+                          handleClick(e, workout.id, workout.title)}}
                         sx={{
                           '&:hover': {
                             bgcolor: 'rgba(139, 92, 246, 0.1)',
@@ -289,7 +296,7 @@ export default function WorkoutsPage() {
                       />
                       
                       <Chip
-                        label={`${workout.exercises} exercises`}
+                        label={`${workout.numberOfExercises} exercises`}
                         size="small"
                         sx={{ bgcolor: 'background.paper' }}
                       />
@@ -322,7 +329,7 @@ export default function WorkoutsPage() {
         }}
       >
         <MenuItem 
-          onClick={handleClose}
+          onClick={()=> {navigate(`/workout/${selectedWorkoutTitle}`, {state: { title: selectedWorkoutTitle, id:selectedWorkoutId }})}}
           sx={{
             gap: 1.5,
             py: 1.5,
@@ -334,8 +341,8 @@ export default function WorkoutsPage() {
           <EditIcon sx={{ fontSize: 20, color: 'primary.main' }} />
           <Typography variant="body2">Edit Workout</Typography>
         </MenuItem>
+
         <MenuItem 
-          onClick={handleClose}
           sx={{
             gap: 1.5,
             py: 1.5,
@@ -347,18 +354,23 @@ export default function WorkoutsPage() {
           <ShareIcon sx={{ fontSize: 20, color: 'info.main' }} />
           <Typography variant="body2">Share</Typography>
         </MenuItem>
-        <MenuItem 
-          onClick={handleClose}
-          sx={{
-            gap: 1.5,
-            py: 1.5,
-            '&:hover': {
-              bgcolor: 'rgba(239, 68, 68, 0.1)',
-            }
-          }}
-        >
-          <DeleteIcon sx={{ fontSize: 20, color: 'error.main' }} />
-          <Typography variant="body2" color="error.main" onClick={handleDeleteWorkout}>Delete</Typography>
+        <MenuItem
+            onClick={async () => {
+              if (selectedWorkoutId !== null) {
+                await handleDeleteWorkout();
+                handleClose(); 
+              }
+            }}
+            sx={{
+              gap: 1.5,
+              py: 1.5,
+              '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.1)' },
+            }}
+          >
+            <DeleteIcon sx={{ fontSize: 20, color: 'error.main' }} />
+            <Typography variant="body2" color="error.main">
+              Delete
+            </Typography>
         </MenuItem>
       </Menu>
     </Box>

@@ -7,18 +7,10 @@ import AssessmentIcon from '@mui/icons-material/Assessment';
 import { AppProvider, type Navigation } from '@toolpad/core/AppProvider';
 import { DashboardLayout } from '@toolpad/core/DashboardLayout';
 import FitnessCenterOutlinedIcon from '@mui/icons-material/FitnessCenterOutlined';
-
-import DashboardContent from '../DashBoardContent';
-import { useLocation, useNavigate } from 'react-router';
+import { Outlet, useLocation, useNavigate } from 'react-router';
 import { useMemo } from 'react';
-import WorkoutsPage from '../WorkoutsPage';
-import ReportsPage from '../ReportsPage';
-import ActivityPage from '../ActivityPage';
 import AccountMenu from './AccountMenu';
-import AuthForm from './AuthForm';
-import ResetPassword from './ResetPassword';
-import SendResetPasswordEmail from './SendResetPasswordEmail';
-import ProfilePage from './ProfilePage';
+
 
 const NAVIGATION: Navigation = [
   {
@@ -89,7 +81,7 @@ export default function AppProviderBasic() {
     };
   }, [location, navigate]);
 
-  const renderContent = () => {
+  /* const renderContent = () => {
     switch (location.pathname) {
       case '/overview':
         return <DashboardContent />;
@@ -112,7 +104,7 @@ export default function AppProviderBasic() {
       case '/send-reset-password':
          return <SendResetPasswordEmail />;
     }
-  };
+  }; */
 
   
   return (
@@ -128,7 +120,7 @@ export default function AppProviderBasic() {
         <DashboardLayout slots={{
             toolbarAccount: AccountMenu,
           }}>
-           {renderContent()}
+           <Outlet />
 
         </DashboardLayout>
       </AppProvider>
