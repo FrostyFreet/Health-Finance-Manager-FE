@@ -13,7 +13,6 @@ import {
   List,
   ListItem,
   ListItemText,
-  Divider,
   IconButton,
   Grid,
   Select,
@@ -73,11 +72,14 @@ export default function AddExerciseModal({ open, onClose, id, refetchParent }: A
  
   const exerciseArray = exerciseList?.slice((currentPage-1) * pageSize, currentPage * pageSize)
   const exercisesByMuscleGroupArray = exercisesByMuscleGroup?.slice((currentPage-1) * pageSize, currentPage * pageSize)
-  
 
-  const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
-    setCurrentPage(value);
-  }
+  const searchResults = Array.isArray(query ? exerciseByName : exerciseArray) ? (query ? exerciseByName: exerciseArray): []
+  const paginatedSearchResults = searchResults.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+  const totalSearchPages = Math.max(1, Math.ceil(searchResults.length / pageSize))
+
+
+
+  const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => { setCurrentPage(value) }
 
   const createAndAdd = async ()=>{
     try{
@@ -158,7 +160,6 @@ export default function AddExerciseModal({ open, onClose, id, refetchParent }: A
         </Tabs>
 
         <TabPanel value={tab} index={0}>
-          {/* Search */}
           <TextField
             fullWidth
             placeholder="Search exercises by name..."
@@ -168,55 +169,62 @@ export default function AddExerciseModal({ open, onClose, id, refetchParent }: A
             sx={textFieldStyle}
           />
 
-          <List sx={{ mt: 2 }}>
-            {(exerciseList && query === '' ? exerciseArray : exerciseByName)?.map((ex:any) => (
-              <ListItem
-                key={ex.id}
-                sx={{
-                  bgcolor: 'background.default',
-                  mb: 1,
-                  borderRadius: 1,
-                  alignItems: 'flex-start',
-                }}
-                secondaryAction={
-                  <Button size="small" variant="contained" startIcon={<AddIcon />} sx={{ textTransform: 'none' }} onClick={()=>{addExercise(ex.name)}}>
-                    Add
-                  </Button>
-                }
-              >
-                <ListItemText
-                  primary={
-                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt:2}}>
-                      <Typography variant="subtitle1" fontWeight="bold">
-                        {ex.name}
-                      </Typography>
-                      <Chip label={ex.group} size="small" sx={{ bgcolor: 'background.paper' }} />
-                    </Box>
+          {paginatedSearchResults.length > 0 ? (
+            <List sx={{ mt: 2 }}>
+              {paginatedSearchResults.map((ex: any) => (
+                <ListItem
+                  key={ex.id}
+                  sx={{
+                    bgcolor: 'background.default',
+                    mb: 1,
+                    borderRadius: 1,
+                    alignItems: 'flex-start',
+                  }}
+                  secondaryAction={
+                    <Button
+                      size="small"
+                      variant="contained"
+                      startIcon={<AddIcon />}
+                      sx={{ textTransform: 'none' }}
+                      onClick={() => addExercise(ex.name)}
+                    >
+                      Add
+                    </Button>
                   }
-                />
-              </ListItem>
-            ))}
-            <Divider sx={{ my: 1 }} />
-            <Box sx={{ textAlign: 'center', mt: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                No matching results? Switch to Create tab to add a new exercise.
-              </Typography>
+                >
+                  <ListItemText
+                    primary={
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 2 }}>
+                        <Typography variant="subtitle1" fontWeight="bold">
+                          {ex.name}
+                        </Typography>
+                        <Chip label={ex.group} size="small" sx={{ bgcolor: 'background.paper' }} />
+                      </Box>
+                    }
+                  />
+                </ListItem>
+              ))}
+            </List>
+          ) : (
+            <Box
+              sx={{
+                mt: 3,
+                py: 4,
+                textAlign: 'center',
+                borderRadius: 2,
+                bgcolor: 'background.default',
+                color: 'text.secondary',
+              }}
+            >
+              <Typography variant="body2">No matching results. Try a different name or create a new exercise.</Typography>
             </Box>
-          </List>
-          <Box sx={{display:'flex', justifyContent:'center'}}>
-            { exerciseList && query === '' ?
-              <Pager numberOfPages={exerciseList && Math.ceil(exerciseList.length / 8)} 
-                page={currentPage}
-                onChange={handlePageChange}
-                />
-              :
-              <Pager numberOfPages={exercisesByMuscleGroup && Math.ceil(exercisesByMuscleGroup.length / 8)} 
-                page={currentPage}
-                onChange={handlePageChange}
-              />
-              
-            }
-           </Box>
+          )}
+
+          {paginatedSearchResults.length > 0 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+              <Pager numberOfPages={totalSearchPages} page={currentPage} onChange={handlePageChange} />
+            </Box>
+          )}
         </TabPanel>
 
         <TabPanel value={tab} index={1}>
