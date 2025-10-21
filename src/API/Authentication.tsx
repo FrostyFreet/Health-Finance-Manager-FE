@@ -10,7 +10,8 @@ export async function supabaseRegister(email:string, password:string,lastName:st
             data: {
                 first_name: firstName,
                 last_name: lastName,
-            }
+            },
+            emailRedirectTo: 'https://health-finance-manager.netlify.app/overview'
         }
     })
     if (error) return "Error while registering to supabase "+error
@@ -30,7 +31,6 @@ export async function backEndRegister(email:string, password:string,lastName:str
                 }
             }
         })
-        console.log(supaData);
         const supabaseUserId = supaData.data.user?.id
         const { data } = await axios.post(
             `${backendURL}/api/users/register`, 
@@ -42,11 +42,13 @@ export async function backEndRegister(email:string, password:string,lastName:str
                 supabaseUserId
             }
         );
-        console.log('Registration successful:', data);
 
         return data
     }
     catch(e: unknown){
+        if (axios.isAxiosError(e) && e.response) {
+            return { error: e.response.data?.message ?? 'Registration failed.' };
+        }
         if (e instanceof Error) {
             return { error: e.message }
         }
