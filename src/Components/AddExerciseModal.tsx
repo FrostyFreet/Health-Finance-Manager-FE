@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   Box,
   Modal,
@@ -20,7 +20,6 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Pagination,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
@@ -74,7 +73,6 @@ export default function AddExerciseModal({ open, onClose, id, refetchParent }: A
  
   const exerciseArray = exerciseList?.slice((currentPage-1) * pageSize, currentPage * pageSize)
   const exercisesByMuscleGroupArray = exercisesByMuscleGroup?.slice((currentPage-1) * pageSize, currentPage * pageSize)
-  console.log(exerciseArray);
   
 
   const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
