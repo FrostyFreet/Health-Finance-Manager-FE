@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   Box,
   Modal,
@@ -20,6 +20,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Pagination,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
@@ -27,6 +28,7 @@ import { IsLoggedInContext } from '../App';
 import { createExercise, getAllExercises, getExerciseByMuscleGroup, getExerciseByName } from '../API/ExercisesAPI';
 import { useQuery } from '@tanstack/react-query';
 import { addExerciseToWorkout } from '../API/WorkoutsAPI';
+import Pager from './Pager';
 
 interface AddExerciseModalProps {
   id:number
@@ -35,19 +37,22 @@ interface AddExerciseModalProps {
   refetchParent: () => void
 }
 
-const muscleGroups = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core'];
+const muscleGroups = ['Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core', 'Cardio'];
 function TabPanel({ children, value, index }: { children?: React.ReactNode; value:number; index:number }) {
   return <div hidden={value !== index}>{value === index && <Box sx={{ mt: 2 }}>{children}</Box>}</div>;
 }
 
 export default function AddExerciseModal({ open, onClose, id, refetchParent }: AddExerciseModalProps) {
-  const theme = useTheme();
+  const theme = useTheme()
   const userContext = useContext(IsLoggedInContext)
-  const [tab, setTab] = useState(0);
-  const [query, setQuery] = useState('');
-  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-  const [createName, setCreateName] = useState('');
-  const [createGroup, setCreateGroup] = useState('');
+  const [tab, setTab] = useState(0)
+  const [query, setQuery] = useState('')
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null)
+  const [createName, setCreateName] = useState('')
+  const [createGroup, setCreateGroup] = useState('')
+  const [status, setStatus] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+  const [currentPage, setCurrentPage]=useState<number>(1)
+  const pageSize = 5 
 
   const { data: exerciseList, refetch } = useQuery({
         queryKey: ['exerciseList'],
@@ -65,14 +70,33 @@ export default function AddExerciseModal({ open, onClose, id, refetchParent }: A
         queryFn: () => getExerciseByMuscleGroup(userContext!.access_token, selectedGroup!),
         enabled: !!userContext?.access_token && !!selectedGroup,
   });
+
+ 
+  const exerciseArray = exerciseList?.slice((currentPage-1) * pageSize, currentPage * pageSize)
+  const exercisesByMuscleGroupArray = exercisesByMuscleGroup?.slice((currentPage-1) * pageSize, currentPage * pageSize)
+  console.log(exerciseArray);
   
+
+  const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
+    setCurrentPage(value);
+  }
+
   const createAndAdd = async ()=>{
     try{
-        await createExercise(userContext?.access_token!, createName,createGroup)
-        await addExerciseToWorkout(userContext?.access_token!,id,createName)
-        refetch()
-        refetchParent();
-        onClose()
+        if((createName && createGroup != '') || (createName && createGroup != null)){
+          await createExercise(userContext?.access_token!, createName,createGroup)
+          await addExerciseToWorkout(userContext?.access_token!,id,createName)
+          refetch()
+          refetchParent();
+          onClose()
+          setStatus({message:'Created', type:'success'})
+
+        }
+        else{
+            setStatus({message:'Please provide an exercise name/muscle group', type:'error'})
+
+        }
+        
     }
     catch(e){
       return e
@@ -147,7 +171,7 @@ export default function AddExerciseModal({ open, onClose, id, refetchParent }: A
           />
 
           <List sx={{ mt: 2 }}>
-            {(exerciseList && query === '' ? exerciseList : exerciseByName)?.map((ex:any) => (
+            {(exerciseList && query === '' ? exerciseArray : exerciseByName)?.map((ex:any) => (
               <ListItem
                 key={ex.id}
                 sx={{
@@ -164,7 +188,7 @@ export default function AddExerciseModal({ open, onClose, id, refetchParent }: A
               >
                 <ListItemText
                   primary={
-                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt:2}}>
                       <Typography variant="subtitle1" fontWeight="bold">
                         {ex.name}
                       </Typography>
@@ -181,6 +205,20 @@ export default function AddExerciseModal({ open, onClose, id, refetchParent }: A
               </Typography>
             </Box>
           </List>
+          <Box sx={{display:'flex', justifyContent:'center'}}>
+            { exerciseList && query === '' ?
+              <Pager numberOfPages={exerciseList && Math.ceil(exerciseList.length / 8)} 
+                page={currentPage}
+                onChange={handlePageChange}
+                />
+              :
+              <Pager numberOfPages={exercisesByMuscleGroup && Math.ceil(exercisesByMuscleGroup.length / 8)} 
+                page={currentPage}
+                onChange={handlePageChange}
+              />
+              
+            }
+           </Box>
         </TabPanel>
 
         <TabPanel value={tab} index={1}>
@@ -197,8 +235,9 @@ export default function AddExerciseModal({ open, onClose, id, refetchParent }: A
             ))}
           </Box>
 
+          
           <Grid container spacing={2}>
-            {(exerciseList && selectedGroup === null ? exerciseList : exercisesByMuscleGroup)?.map((ex:any) => (
+            {(exerciseList && selectedGroup === null ? exerciseArray : exercisesByMuscleGroupArray)?.map((ex:any) => (
               <Grid sx={{ xs:12, sm:6}} key={ex.id}>
                 <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Box>
@@ -210,13 +249,29 @@ export default function AddExerciseModal({ open, onClose, id, refetchParent }: A
                     </Typography>
                   </Box>
 
-                  <Button variant="outlined" startIcon={<AddIcon />} sx={{ textTransform: 'none', ml:1.5 }}>
+                  <Button variant="outlined" startIcon={<AddIcon />} sx={{ textTransform: 'none', ml:1.5 }} onClick={()=>addExercise(ex.name)}>
                     Add
                   </Button>
                 </Box>
               </Grid>
             ))}
           </Grid>
+          <Box sx={{display:'flex', justifyContent:'center', mt:2}}>
+            { exerciseList && selectedGroup === null ?
+              <Pager numberOfPages={exerciseList && Math.ceil(exerciseList.length / 8)} 
+                page={currentPage}
+                onChange={handlePageChange}
+                />
+              :
+              <Pager numberOfPages={exercisesByMuscleGroup && Math.ceil(exercisesByMuscleGroup.length / 8)} 
+                page={currentPage}
+                onChange={handlePageChange}
+              />
+              
+            }
+          </Box>
+         
+
         </TabPanel>
 
         <TabPanel value={tab} index={2}>
@@ -246,6 +301,21 @@ export default function AddExerciseModal({ open, onClose, id, refetchParent }: A
                 ))}
               </Select>
             </FormControl>
+            
+            {status && (
+              <Typography
+                sx={{
+                  color: status.type === 'success' ? 'success.main' : 'error.main',
+                  textAlign: 'center',
+                  p: 1,
+                  borderRadius: 1,
+              
+                  opacity: 0.9,
+                }}
+              >
+                {status.message}
+              </Typography>
+            )}
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
               <Button variant="outlined" onClick={onClose} sx={{ textTransform: 'none' }}>
@@ -259,5 +329,6 @@ export default function AddExerciseModal({ open, onClose, id, refetchParent }: A
         </TabPanel>
       </Box>
     </Modal>
+    
   );
 }
