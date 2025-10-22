@@ -1,4 +1,3 @@
-// typescript
 import {
   Box,
   Typography,
@@ -22,7 +21,7 @@ import TimelineIcon from '@mui/icons-material/Timeline';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
 import Pager from './Components/Pager';
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useMemo, useState } from 'react';
 import { IsLoggedInContext } from './App';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -39,18 +38,6 @@ import {
   Area,
   AreaChart,
 } from 'recharts';
-
-function formatLocalDateTime(d: Date) {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const year = d.getFullYear();
-  const month = pad(d.getMonth() + 1);
-  const day = pad(d.getDate());
-  const hours = pad(d.getHours());
-  const minutes = pad(d.getMinutes());
-  const seconds = pad(d.getSeconds());
-  // returns e.g. "2025-01-01T00:00:00" (no trailing Z)
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-}
 
 function aggregateProgressByDay(progressData: any[] = [], startDate?: Date, endDate?: Date) {
   if (!startDate || !endDate) return [];
@@ -78,6 +65,7 @@ export default function ReportsPage() {
   const userContext = useContext(IsLoggedInContext);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [exerciseId, setExerciseId] = useState<string>('');
+  const [exerciseName, setExerciseName] = useState<string>('');
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [status, setStatus] = useState<{ message: string; type: 'success' | 'error' }>();
@@ -88,17 +76,14 @@ export default function ReportsPage() {
     enabled: !!userContext?.access_token,
   });
 
-  const formattedStart = startDate ? formatLocalDateTime(startDate) : undefined;
-  const formattedEnd = endDate ? formatLocalDateTime(endDate) : undefined;
-
   const { data: progressData } = useQuery({
-    queryKey: ['progressData', exerciseId, formattedStart, formattedEnd],
+    queryKey: ['progressData', exerciseId, startDate, endDate],
     queryFn: () =>
       getExerciseProgressByExerciseIdAndDateRange(
         userContext!.access_token,
         exerciseId,
-        formattedStart!,
-        formattedEnd!
+        startDate!,
+        endDate!
       ),
     enabled: !!userContext?.access_token && !!exerciseId && !!startDate && !!endDate,
   });
@@ -113,10 +98,6 @@ export default function ReportsPage() {
     () => aggregateProgressByDay(progressData ?? [], startDate, endDate),
     [progressData, startDate, endDate]
   );
-  useEffect(()=>{
-    console.log(progressData);
-    
-  },[progressData])
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -220,6 +201,7 @@ export default function ReportsPage() {
                             key={ex.id}
                             onClick={() => {
                               setExerciseId(ex.id);
+                              setExerciseName(ex.name);
                             }}
                             sx={{
                               p: 3,
@@ -353,7 +335,38 @@ export default function ReportsPage() {
                     </CardContent>
                   </Card>
                 </Grid>
-        
+                  
+                {/* Selected Exercise Display */}
+            {exerciseId && (
+              <Fade in={!!exerciseId}>
+                <Paper
+                  sx={{
+                    p: 4,
+                    borderRadius: 4,
+                    bgcolor: 'success.dark',
+                    color: 'white',
+                    boxShadow: '0 10px 32px rgba(76, 175, 80, 0.4)',
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" spacing={3}>
+                    <Avatar sx={{ bgcolor: 'success.light', width: 56, height: 56 }}>
+                      <FitnessCenterIcon sx={{ fontSize: 32 }} />
+                    </Avatar>
+                    <Box flex={1}>
+                      <Typography variant="body1" sx={{ opacity: 0.8, mb: 0.5 }}>
+                        Currently Analyzing
+                      </Typography>
+                      <Typography variant="h5" fontWeight="bold">
+                        {exerciseName}
+                      </Typography>
+                    </Box>
+                    <CheckCircleOutlineIcon sx={{ fontSize: 36 }} />
+                  </Stack>
+                </Paper>
+              </Fade>
+            )}
+
+
               </Grid>
             )}
 
