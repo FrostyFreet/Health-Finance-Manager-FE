@@ -1,3 +1,4 @@
+// typescript
 import {
   Box,
   Typography,
@@ -39,6 +40,18 @@ import {
   AreaChart,
 } from 'recharts';
 
+function formatLocalDateTime(d: Date) {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  const seconds = pad(d.getSeconds());
+  // returns e.g. "2025-01-01T00:00:00" (no trailing Z)
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+}
+
 function aggregateProgressByDay(progressData: any[] = [], startDate?: Date, endDate?: Date) {
   if (!startDate || !endDate) return [];
 
@@ -76,14 +89,17 @@ export default function ReportsPage() {
     enabled: !!userContext?.access_token,
   });
 
+  const formattedStart = startDate ? formatLocalDateTime(startDate) : undefined;
+  const formattedEnd = endDate ? formatLocalDateTime(endDate) : undefined;
+
   const { data: progressData } = useQuery({
-    queryKey: ['progressData', exerciseId, startDate, endDate],
+    queryKey: ['progressData', exerciseId, formattedStart, formattedEnd],
     queryFn: () =>
       getExerciseProgressByExerciseIdAndDateRange(
         userContext!.access_token,
         exerciseId,
-        startDate!,
-        endDate!
+        formattedStart!,
+        formattedEnd!
       ),
     enabled: !!userContext?.access_token && !!exerciseId && !!startDate && !!endDate,
   });

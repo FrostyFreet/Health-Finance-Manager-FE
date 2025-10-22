@@ -105,7 +105,7 @@ export async function deleteExerciseFromWorkoutById(token:string, exerciseId:str
     }
 }
 
-export async function getExerciseProgressByExerciseIdAndDateRange(token:string, exerciseId:string, startDate:Date, endDate:Date ){
+export async function getExerciseProgressByExerciseIdAndDateRange(token:string, exerciseId:string, startDate:string, endDate:string ){
     try{
         const response = await axios.get(`${backendURL}/api/exercises/${exerciseId}/weight-progress`,
         {
