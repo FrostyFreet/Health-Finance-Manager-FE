@@ -264,12 +264,12 @@ export default function AddExerciseModal({ open, onClose, id, refetchParent }: A
           </Grid>
           <Box sx={{display:'flex', justifyContent:'center', mt:2}}>
             { exerciseList && selectedGroup === null ?
-              <Pager numberOfPages={exerciseList && Math.ceil(exerciseList.length / 8)} 
+              <Pager numberOfPages={exerciseList && Math.ceil(exerciseList.length / 5)} 
                 page={currentPage}
                 onChange={handlePageChange}
                 />
               :
-              <Pager numberOfPages={exercisesByMuscleGroup && Math.ceil(exercisesByMuscleGroup.length / 8)} 
+              <Pager numberOfPages={exercisesByMuscleGroup && Math.ceil(exercisesByMuscleGroup.length / 5)} 
                 page={currentPage}
                 onChange={handlePageChange}
               />

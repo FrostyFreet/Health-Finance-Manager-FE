@@ -104,3 +104,21 @@ export async function deleteExerciseFromWorkoutById(token:string, exerciseId:str
         throw e;
     }
 }
+
+export async function getExerciseProgressByExerciseIdAndDateRange(token:string, exerciseId:string, startDate:Date, endDate:Date ){
+    try{
+        const response = await axios.get(`${backendURL}/api/exercises/${exerciseId}/weight-progress`,
+        {
+            params: {startDate,endDate },
+            headers: { Authorization: `Bearer ${token}` },
+        }
+        );
+        return response.data
+    }
+    catch (e: unknown) {
+        if (axios.isAxiosError(e)) {
+        throw new Error(e.response?.data?.message || e.message);
+        }
+        throw e;
+    }
+}

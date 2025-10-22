@@ -102,23 +102,21 @@ export default function WorkoutsPage() {
   });
   
  
-  const totalWorkouts = workoutsList?.length
-  let allDuration = 0
-  
-  workoutsList?.forEach((workout:any) => {
-    allDuration += workout.duration 
-  }) 
-  const currentWeek = getCurrentWeek();
-  const workoutsThisWeek = getWorkoutsThisWeek(workoutsList || workouts, currentWeek);
+  const workoutItems = userContext
+    ? Array.isArray(workoutsList) ? workoutsList : []
+    : workouts;
 
-  const averageDuration = allDuration / totalWorkouts
+  const totalWorkouts = userContext ? workoutItems.length : undefined;
+  const totalDuration = userContext ? workoutItems.reduce((sum: number, w: any) => sum + (w.duration ?? 0), 0) : undefined;
+  const averageDuration = totalWorkouts && totalWorkouts > 0 ? `${Math.round(totalDuration! / totalWorkouts)} min` : userContext ? 0 : '42 min';
+  const workoutsThisWeek = userContext ? getWorkoutsThisWeek(workoutItems, getCurrentWeek()) : 6;
 
   const stats = [
-    { label: 'Total Workouts', value: totalWorkouts || '24', icon: <FitnessCenterIcon /> },
-    { label: 'Avg Duration', value: averageDuration || '42 min', icon: <TimerIcon /> },
-    { label: 'This Week', value: workoutsThisWeek || '6', icon: <TrendingUpIcon /> },
+    { label: 'Total Workouts', value: userContext ? totalWorkouts ?? 0 : 24, icon: <FitnessCenterIcon /> },
+    { label: 'Avg Duration', value: averageDuration, icon: <TimerIcon /> },
+    { label: 'This Week', value: userContext ? workoutsThisWeek : 6, icon: <TrendingUpIcon /> },
   ];
-
+  
   
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<number | null>(null);
@@ -230,85 +228,188 @@ export default function WorkoutsPage() {
       </Grid>
 
       {/* Workouts List */}
-      <Card sx={{ bgcolor: 'background.paper', borderRadius: 3 }}>
-        <CardContent>
-          <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
-            Recent Workouts
-          </Typography>
-          <Grid container spacing={2}>
-            {(workoutsList || workouts).map((workout:any) => (
-              <Grid size={{ xs: 12, md: 6 }} key={workout.id}>
-                <Card
-                 onClick={()=>{navigate(`/workout/${workout.title}`, {state: {title: workout.title, id: workout.id}}), setSelectedWorkoutTitle(workout.title)}}
-                  sx={{
-                    bgcolor: 'background.default',
-                    borderRadius: 2,
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    transition: 'all 0.2s',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 4px 12px rgba(139, 92, 246, 0.15)',
-                    },
-                  }}
-                >
-                  <CardContent>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-                        <Avatar sx={{bgcolor: workout.color, width: 48,height: 48}}>
-                          <FitnessCenterIcon />
-                        </Avatar>
-                        <Box>
-                          <Typography variant="h6" fontWeight="bold">
-                            {workout.title}
+<Card sx={{ bgcolor: 'background.paper', borderRadius: 3 }}>
+  <CardContent>
+    <Typography variant="h6" fontWeight="bold" sx={{ mb: 3 }}>
+      Recent Workouts
+    </Typography>
+
+    <Grid container spacing={2}>
+      {userContext ? (
+        workoutsList && workoutsList.length > 0 ? (
+          workoutsList.map((workout: any) => (
+            <Grid size={{ xs: 12, md: 6 }} key={workout.id}>
+              <Card
+                onClick={() => {
+                  navigate(`/workout/${workout.title}`, {
+                    state: { title: workout.title, id: workout.id },
+                  });
+                  setSelectedWorkoutTitle(workout.title);
+                }}
+                sx={{
+                  bgcolor: 'background.default',
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 4px 12px rgba(139, 92, 246, 0.15)',
+                  },
+                }}
+              >
+                <CardContent>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      mb: 2,
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                      <Avatar sx={{ bgcolor: workout.color, width: 48, height: 48 }}>
+                        <FitnessCenterIcon />
+                      </Avatar>
+                      <Box>
+                        <Typography variant="h6" fontWeight="bold">
+                          {workout.title}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                          <CalendarTodayIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+                          <Typography variant="body2" color="text.secondary">
+                            {formatDate(workout.createdAt)}
                           </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                            <CalendarTodayIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
-                            <Typography variant="body2" color="text.secondary">
-                              {formatDate(workout.createdAt)}
-                            </Typography>
-                          </Box>
                         </Box>
                       </Box>
-                      
-                      <IconButton 
-                        size="small" 
-                        onClick={(e) =>{
-                          e.stopPropagation(), 
-                          handleClick(e, workout.id, workout.title)}}
-                        sx={{
-                          '&:hover': {
-                            bgcolor: 'rgba(139, 92, 246, 0.1)',
-                          }
-                        }}
-                      >
-                        <MoreVertIcon />
-                      </IconButton>
                     </Box>
 
-                    <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                      <Chip
-                        icon={<TimerIcon sx={{ fontSize: 16 }} />}
-                        label={`${workout.duration} min`}
-                        size="small"
-                        sx={{ bgcolor: 'background.paper' }}
-                      />
-                      
-                      <Chip
-                        label={`${workout.numberOfExercises} exercises`}
-                        size="small"
-                        sx={{ bgcolor: 'background.paper' }}
-                      />
-                      
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleClick(e, workout.id, workout.title);
+                      }}
+                      sx={{
+                        '&:hover': {
+                          bgcolor: 'rgba(139, 92, 246, 0.1)',
+                        },
+                      }}
+                    >
+                      <MoreVertIcon />
+                    </IconButton>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                    <Chip
+                      icon={<TimerIcon sx={{ fontSize: 16 }} />}
+                      label={`${workout.duration} min`}
+                      size="small"
+                      sx={{ bgcolor: 'background.paper' }}
+                    />
+                    <Chip
+                      label={`${workout.numberOfExercises} exercises`}
+                      size="small"
+                      sx={{ bgcolor: 'background.paper' }}
+                    />
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))
+        ) : (
+          <Typography variant="body1" sx={{ m: 2 }}>
+            No workouts yet
+          </Typography>
+        )
+      ) : (
+        workouts.map((workout: any) => (
+          <Grid size={{ xs: 12, md: 6 }} key={workout.id}>
+            <Card
+              onClick={() => {
+                navigate(`/workout/${workout.title}`, {
+                  state: { title: workout.title, id: workout.id },
+                });
+                setSelectedWorkoutTitle(workout.title);
+              }}
+              sx={{
+                bgcolor: 'background.default',
+                borderRadius: 2,
+                border: '1px solid',
+                borderColor: 'divider',
+                transition: 'all 0.2s',
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 4px 12px rgba(139, 92, 246, 0.15)',
+                },
+              }}
+            >
+              <CardContent>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    mb: 2,
+                  }}
+                >
+                  <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                    <Avatar sx={{ bgcolor: workout.color, width: 48, height: 48 }}>
+                      <FitnessCenterIcon />
+                    </Avatar>
+                    <Box>
+                      <Typography variant="h6" fontWeight="bold">
+                        {workout.title}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                        <CalendarTodayIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+                        <Typography variant="body2" color="text.secondary">
+                          {formatDate(workout.createdAt)}
+                        </Typography>
+                      </Box>
                     </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
+                  </Box>
+
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleClick(e, workout.id, workout.title);
+                    }}
+                    sx={{
+                      '&:hover': {
+                        bgcolor: 'rgba(139, 92, 246, 0.1)',
+                      },
+                    }}
+                  >
+                    <MoreVertIcon />
+                  </IconButton>
+                </Box>
+
+                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                  <Chip
+                    icon={<TimerIcon sx={{ fontSize: 16 }} />}
+                    label={`${workout.duration} min`}
+                    size="small"
+                    sx={{ bgcolor: 'background.paper' }}
+                  />
+                  <Chip
+                    label={`${workout.numberOfExercises} exercises`}
+                    size="small"
+                    sx={{ bgcolor: 'background.paper' }}
+                  />
+                </Box>
+              </CardContent>
+            </Card>
           </Grid>
-        </CardContent>
-      </Card>
+        ))
+      )}
+    </Grid>
+  </CardContent>
+</Card>
+
 
       {/* Menu Component */}
       <Menu
