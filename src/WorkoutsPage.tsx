@@ -237,7 +237,7 @@ export default function WorkoutsPage() {
     <Grid container spacing={2}>
       {userContext ? (
         workoutsList && workoutsList.length > 0 ? (
-          workoutsList.map((workout: any) => (
+          workoutsList.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((workout: any) => (
             <Grid size={{ xs: 12, md: 6 }} key={workout.id}>
               <Card
                 onClick={() => {
