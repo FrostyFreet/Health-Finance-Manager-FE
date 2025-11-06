@@ -218,8 +218,8 @@ export default function DashboardContent() {
                 <AreaChart data={activityData}>
                   <defs>
                     <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#b68663" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#b68663" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
@@ -229,7 +229,7 @@ export default function DashboardContent() {
                   <Area 
                     type="monotone" 
                     dataKey="value" 
-                    stroke="#8b5cf6" 
+                    stroke="#b68663" 
                     strokeWidth={3}
                     fill="url(#colorValue)"
                   />

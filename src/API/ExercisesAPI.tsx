@@ -122,3 +122,37 @@ export async function getExerciseProgressByExerciseIdAndDateRange(token:string, 
         throw e;
     }
 }
+
+export async function getHighestWeightEverUsedByExerciseId(token:string, exerciseId:string ){
+    try{
+        const response = await axios.get(`${backendURL}/api/exercises/getHighestWeightEverUsedByExerciseId/${exerciseId}`,
+        {
+            headers: { Authorization: `Bearer ${token}` },
+        }
+        );
+        return response.data
+    }
+    catch (e: unknown) {
+        if (axios.isAxiosError(e)) {
+        throw new Error(e.response?.data?.message || e.message);
+        }
+        throw e;
+    }
+}
+
+export async function getHighestWeightLastWorkoutByExerciseId(token:string, exerciseId:string ){
+    try{
+        const response = await axios.get(`${backendURL}/api/exercises/getHighestWeightLastWorkoutByExerciseId/${exerciseId}`,
+        {
+            headers: { Authorization: `Bearer ${token}` },
+        }
+        );
+        return response.data
+    }
+    catch (e: unknown) {
+        if (axios.isAxiosError(e)) {
+        throw new Error(e.response?.data?.message || e.message);
+        }
+        throw e;
+    }
+}

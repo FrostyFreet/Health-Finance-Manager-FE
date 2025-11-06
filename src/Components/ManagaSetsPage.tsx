@@ -1,4 +1,4 @@
-import { Box, IconButton, Typography, Card, CardContent, Divider, Stack, Paper, TextField, Button, Alert } from "@mui/material";
+import { Box, IconButton, Typography, Card, CardContent, Divider, Stack, Paper, TextField, Button, Alert, Grid } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router";
@@ -8,6 +8,9 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+import { getExerciseByName, getHighestWeightEverUsedByExerciseId, getHighestWeightLastWorkoutByExerciseId } from "../API/ExercisesAPI";
 
 export default function ManageSetsPage() {
   const userContext = useContext(IsLoggedInContext);
@@ -18,12 +21,40 @@ export default function ManageSetsPage() {
   const [sets, setSets] = useState([{ weight: '', reps: '' }]);
   const [editValues, setEditValues] = useState<{ [id: string]: { weight: string, reps: string } }>({});
   const [status, setStatus] = useState<"Successfully added sets!"| "Please provide weight and reps!" | "Successfully updated set">()
-
+  
   const { data: exerciseDetail, error, refetch } = useQuery({
     queryKey: ['exerciseDetail', exerciseId],
     queryFn: () => getAllSetsByExerciseId(userContext!.access_token, exerciseId),
     enabled: !!userContext?.access_token && !!exerciseId,
   });
+
+  const { data: exerciseByName } = useQuery({
+    queryKey: ['exerciseByName', exerciseName],
+    queryFn: () => getExerciseByName(userContext!.access_token, exerciseName),
+    enabled: !!userContext?.access_token && !!exerciseName,
+  });
+
+  const { data: highestWeightEver } = useQuery({
+    queryKey: ['highestWeightEver', exerciseByName?.[0]?.id],
+    queryFn: () => {
+      return getHighestWeightEverUsedByExerciseId(userContext!.access_token, exerciseByName?.[0]?.id);
+    },
+    enabled: !!userContext?.access_token && !!exerciseByName?.[0]?.id,
+  });
+
+  const { data: lastWorkoutHighestWeight } = useQuery({
+    queryKey: ['lastWorkoutHighestWeight', exerciseByName?.[0].id],
+    queryFn: () => {
+      return getHighestWeightLastWorkoutByExerciseId(userContext!.access_token, exerciseByName?.[0]?.id);
+    },
+    enabled: !!userContext?.access_token && !!exerciseByName?.[0]?.id,
+  });
+
+  console.log('exerciseByName:', exerciseByName);
+  console.log('highestWeightEver:', highestWeightEver);
+  console.log('lastWorkoutHighestWeight:', lastWorkoutHighestWeight);
+  
+  
 
   useEffect(() => {
     if (exerciseDetail) {
@@ -119,6 +150,51 @@ export default function ManageSetsPage() {
           {exerciseName}
         </Typography>
       </Box>
+
+      {/* Stats Cards */}
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid size={{xs:12, sm:6}}>
+          <Card sx={{ borderRadius: 2, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+                <TrendingUpIcon />
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  Highest Weight Ever
+                </Typography>
+                <Typography variant="h5" fontWeight="bold" color="primary.main">
+                  {highestWeightEver?.weight ?? '-'} kg 
+                </Typography>
+                <Typography variant="h5" fontWeight="bold" color="primary.main">
+                  {highestWeightEver?.numberOfReps ? `${highestWeightEver.numberOfReps} reps` : ''}
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid size={{xs:12, sm:6}} >
+          <Card sx={{ borderRadius: 2, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+            <CardContent sx={{ display: 'flex', alignItems: 'center', justifyContent:'center', gap: 2 }}>
+              <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: 'secondary.main', color: 'secondary.contrastText' }}>
+                <FitnessCenterIcon />
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  Last Workout Max
+                </Typography>
+                <Typography variant="h5" fontWeight="bold" color="secondary.main">
+                  {lastWorkoutHighestWeight?.weight ?? '-'} kg  
+                </Typography>
+                <Typography variant="h5" fontWeight="bold" color="secondary.main">
+                  {lastWorkoutHighestWeight?.numberOfReps ? `${lastWorkoutHighestWeight.numberOfReps} reps` : ''}
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
       <Card sx={{ borderRadius: 3, mb: 3 }}>
         <CardContent>
