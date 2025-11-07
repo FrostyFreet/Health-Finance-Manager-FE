@@ -185,10 +185,10 @@ export default function ManageSetsPage() {
                   Last Workout Max
                 </Typography>
                 <Typography variant="h5" fontWeight="bold" color="secondary.main">
-                  {lastWorkoutHighestWeight?.weight ?? '-'} kg  
+                  {lastWorkoutHighestWeight?.maxWeightLastWorkout ?? '-'} kg  
                 </Typography>
                 <Typography variant="h5" fontWeight="bold" color="secondary.main">
-                  {lastWorkoutHighestWeight?.numberOfReps ? `${lastWorkoutHighestWeight.numberOfReps} reps` : ''}
+                  {lastWorkoutHighestWeight?.maxNumberOfReps ? `${lastWorkoutHighestWeight.maxNumberOfReps} reps` : ''}
                 </Typography>
               </Box>
             </CardContent>
