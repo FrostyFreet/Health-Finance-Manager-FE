@@ -50,12 +50,6 @@ export default function ManageSetsPage() {
     enabled: !!userContext?.access_token && !!exerciseByName?.[0]?.id,
   });
 
-  console.log('exerciseByName:', exerciseByName);
-  console.log('highestWeightEver:', highestWeightEver);
-  console.log('lastWorkoutHighestWeight:', lastWorkoutHighestWeight);
-  
-  
-
   useEffect(() => {
     if (exerciseDetail) {
       const initial: { [id: string]: { weight: string, reps: string } } = {};
